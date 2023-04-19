@@ -1,3 +1,4 @@
 *.json
 output/*
 notes.md
+dist/
