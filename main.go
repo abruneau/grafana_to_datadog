@@ -67,6 +67,7 @@ func main() {
 		check(err)
 	}
 
+	os.Mkdir(fmt.Sprintf("./output"), os.ModePerm)
 	if fileInfo.IsDir() {
 		files, err := getJSONFiles(dPath)
 		check(err)
