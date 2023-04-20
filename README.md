@@ -37,7 +37,20 @@
 <!-- GETTING STARTED -->
 ## Getting Started
 
-### Usage
+### Brew
+
+1. Install the formula
+    ```sh
+    brew install abruneau/homebrew-tap/grafana_to_datadog
+    ```
+2. Run the tool on a file or a directory
+    ```sh
+    grafana_to_datadog ./my_grafana_dashboard.json
+    grafana_to_datadog ./my_grafana_dashboard_directory
+    ```
+
+
+### From Binary
 
 1. Get the [latest release](https://github.com/abruneau/grafana_to_datadog/releases) for your platform
 2. Run the tool on a file or a directory
@@ -49,7 +62,7 @@
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-## Build from source
+### Build from source
 
 1. Clone the repository
    ```sh
