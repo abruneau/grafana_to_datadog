@@ -29,6 +29,7 @@
 
 * [Go](https://go.dev/)
 * [goreleaser](https://goreleaser.com/)
+* [cobra](https://github.com/spf13/cobra)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -39,25 +40,15 @@
 
 ### Brew
 
-1. Install the formula
-    ```sh
-    brew install abruneau/homebrew-tap/grafana_to_datadog
-    ```
-2. Run the tool on a file or a directory
-    ```sh
-    grafana_to_datadog ./my_grafana_dashboard.json
-    grafana_to_datadog ./my_grafana_dashboard_directory
-    ```
+```sh
+brew install abruneau/homebrew-tap/grafana_to_datadog
+```
+
 
 
 ### From Binary
 
-1. Get the [latest release](https://github.com/abruneau/grafana_to_datadog/releases) for your platform
-2. Run the tool on a file or a directory
-    ```sh
-    grafana_to_datadog ./my_grafana_dashboard.json
-    grafana_to_datadog ./my_grafana_dashboard_directory
-    ```
+Get the [latest release](https://github.com/abruneau/grafana_to_datadog/releases) for your platform
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -68,13 +59,39 @@
    ```sh
    git clone git@github.com:abruneau/grafana_to_datadog.git
    ```
-2. Run the tool
+2. Build
     ```sh
-    go run main.go ./my_grafana_dashboard.json
+    go build -o grafana_to_datadog 
     ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## Usage
+
+```sh
+Usage:
+  grafana_to_datadog [flags]
+
+Flags:
+  -d, --debug           ennable debug mode
+  -h, --help            help for grafana_to_datadog
+  -i, --input string    name of the input file or directory
+  -o, --output string   name of the output directory
+```
+
+Convert a specific dashboard:
+
+```sh
+grafana_to_datadog -i ./my_grafana_dashboard.json -o ./output
+```
+
+Convert all dashboards in a directory 
+
+```sh
+grafana_to_datadog -i ./my_grafana_dashboard_directory -o ./output
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Compatibility
 
