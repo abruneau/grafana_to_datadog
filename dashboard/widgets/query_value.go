@@ -3,6 +3,7 @@ package widgets
 import (
 	"fmt"
 	"grafana_to_datadog/dashboard/widgets/cloudwatch"
+	"grafana_to_datadog/dashboard/widgets/stackdriver"
 	"grafana_to_datadog/grafana"
 
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
@@ -32,6 +33,8 @@ func newQueryValueRequest(source string, panel grafana.Panel, logger *log.Entry)
 	switch source {
 	case "cloudwatch":
 		widgetRequest, err = cloudwatch.NewQueryValueWidgetRequest(panel, logger)
+	case "stackdriver":
+		widgetRequest, err = stackdriver.NewQueryValueWidgetRequest(panel, logger)
 	default:
 		err = fmt.Errorf("unknown datasource %s", panel.Datasource.Type)
 	}
