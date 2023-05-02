@@ -107,7 +107,7 @@ grafana_to_datadog -i ./my_grafana_dashboard_directory -o ./output
 ## Roadmap
 
 - [ ] Add support for more widget
-- [ ] Add support for GCP Stackdriver
+- [x] Add support for GCP Stackdriver
 
 
 See the [open issues](https://github.com/abruneau/grafana_to_datadog/issues) for a full list of proposed features (and known issues).
