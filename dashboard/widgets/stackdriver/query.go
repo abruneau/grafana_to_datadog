@@ -13,11 +13,6 @@ var (
 	root = "gcp"
 )
 
-var resourceMap = map[string]string{
-	"compute.googleapis.com":  "gce",
-	"composer.googleapis.com": "composer",
-}
-
 var alignmentType = map[string]datadogV1.FormulaAndFunctionMetricAggregation{
 	"ALIGN_MEAN":  "avg",
 	"ALIGN_MIN":   "min",
@@ -39,6 +34,15 @@ func (q *Query) id() string {
 	return id
 }
 
+func resourceMap(res string) string {
+	switch res {
+	case "compute.googleapis.com":
+		return "gce"
+	default:
+		return strings.Split(res, ".")[0]
+	}
+}
+
 func (q *Query) metric() (string, error) {
 
 	m := q.MetricQuery.MetricType
@@ -52,10 +56,7 @@ func (q *Query) metric() (string, error) {
 	}
 
 	parts := strings.Split(m, "/")
-	resourceType, ok := resourceMap[parts[0]]
-	if !ok {
-		return "", fmt.Errorf("resource type %s not supported", parts[0])
-	}
+	resourceType := resourceMap(parts[0])
 	metric := strings.Join(parts[1:], ".")
 
 	return strings.Join([]string{root, resourceType, metric}, "."), nil
