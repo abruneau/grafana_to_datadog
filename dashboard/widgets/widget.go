@@ -15,7 +15,7 @@ func ConvertWidget(source string, panel grafana.Panel, logger *log.Entry) (datad
 	var err error = nil
 
 	switch panel.Type {
-	case "timeseries", "graph":
+	case "timeseries", "graph", "barchart":
 		definition, err = newTimeseriesDefinition(source, panel, logger)
 	case "text":
 		definition, err = newTextDefinition(panel)
