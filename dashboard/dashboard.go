@@ -42,6 +42,7 @@ func (c *dashboardConvertor) extractTemplateVariables() {
 	for _, v := range c.graf.Templating.List {
 		if v.Type == "query" {
 			tv := datadogV1.NewDashboardTemplateVariable(v.Name)
+			tv.SetPrefix(v.Name)
 			c.templateVariables = append(c.templateVariables, *tv)
 		} else if v.Type == "datasource" {
 			c.datasource = v.Query

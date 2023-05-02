@@ -95,23 +95,19 @@ grafana_to_datadog -i ./my_grafana_dashboard_directory -o ./output
 
 ## Compatibility
 
-### Cloudwatch
-
-#### Widget types
-
-| Graphana           | Datadog    | Supported | Notes |
-| ------------------ | ---------- | --------- | ----- |
-| timeseries / graph | Timeseries | ✅         |       |
-| text               | Note       | ✅         |       |
-| row                | Group      | ✅         |       |
-| stat               | QueryValue | ✅         |
+| Graphana           | Datadog    | Cloudwatch | Stackdriver |
+| ------------------ | ---------- | ---------- | ----------- |
+| timeseries / graph | Timeseries | ✅          | ✅           |
+| text               | Note       | ✅          | ✅           |
+| row                | Group      | ✅          | ✅           |
+| stat               | QueryValue | ✅          | ✅           |
 
 
 <!-- ROADMAP -->
 ## Roadmap
 
 - [ ] Add support for more widget
-- [ ] Add support for GCP Stackdriver
+- [x] Add support for GCP Stackdriver
 
 
 See the [open issues](https://github.com/abruneau/grafana_to_datadog/issues) for a full list of proposed features (and known issues).

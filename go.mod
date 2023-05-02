@@ -23,8 +23,10 @@ require (
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/gobeam/stringy v0.0.6
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
+	golang.org/x/exp v0.0.0-20230420155640-133eef4313cb
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/oauth2 v0.5.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
