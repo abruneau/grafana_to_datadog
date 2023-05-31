@@ -43,6 +43,18 @@ func TestMetric(t *testing.T) {
 	m, _ := testTarget.metric()
 	assert.Equal(t, "gcp.gce.instance.cpu.utilization", m)
 
+	testTarget = Query{&Target{}}
+	testTarget.MetricQuery.Filters = []string{"metric.label.instance_name",
+		"=",
+		"gke-agent-core-benchmark-default-pool-4b1e15cf-bue8",
+		"AND",
+		"metric.type",
+		"=",
+		"compute.googleapis.com/guest/cpu/load_15m",
+	}
+	m, _ = testTarget.metric()
+	assert.Equal(t, "gcp.gce.guest.cpu.load_15m", m)
+
 }
 
 func TestGroups(t *testing.T) {
@@ -73,6 +85,26 @@ func TestAggregator(t *testing.T) {
 		agg, err := testTarget.aggregator()
 		assert.Equal(t, value, agg)
 		assert.Nil(t, err)
+	}
+}
+
+func TestFilter(t *testing.T) {
+	var tests = []struct {
+		input    []string
+		expected []string
+	}{
+		{
+			[]string{"metric.label.instance_name", "=", "gke-agent-core-benchmark-default-pool-4b1e15cf-gqiy", "AND", "metric.type", "=", "compute.googleapis.com/guest/cpu/load_15m"},
+			[]string{"instance_name:gke-agent-core-benchmark-default-pool-4b1e15cf-gqiy"},
+		},
+	}
+
+	for _, test := range tests {
+		testTarget := Query{&Target{}}
+		testTarget.TimeSeriesList.Filters = test.input
+		testTarget.QueryType = "timeSeriesList"
+		m, _ := testTarget.filter()
+		assert.Equal(t, test.expected, m)
 	}
 }
 

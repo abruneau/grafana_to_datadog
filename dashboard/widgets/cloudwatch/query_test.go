@@ -32,6 +32,30 @@ func TestMetric(t *testing.T) {
 	}
 }
 
+func TestGroups(t *testing.T) {
+	var tests = []struct {
+		input    map[string]string
+		expected []string
+	}{
+		{
+			map[string]string{"InstanceId": "*"}, []string{"instance_id"},
+		},
+		{
+			map[string]string{}, []string{},
+		},
+		{
+			map[string]string{"InstanceId": "test"}, []string{},
+		},
+	}
+
+	for _, test := range tests {
+		testTarget := Query{&Target{}}
+		testTarget.Dimensions = test.input
+		m := testTarget.groups()
+		assert.Equal(t, test.expected, m)
+	}
+}
+
 func TestAggregator(t *testing.T) {
 	for key, value := range statisticMap {
 		testTarget := Query{&Target{}}

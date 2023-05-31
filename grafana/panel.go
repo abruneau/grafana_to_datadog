@@ -80,6 +80,7 @@ type Panel struct {
 		} `json:"tooltip"`
 		Content   string `json:"content"`
 		GraphMode string `json:"graphMode"`
+		Mode      string `json:"mode"`
 	} `json:"options,omitempty"`
 	PluginVersion string                   `json:"pluginVersion"`
 	Targets       []map[string]interface{} `json:"targets,omitempty"`

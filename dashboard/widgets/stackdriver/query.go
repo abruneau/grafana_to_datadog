@@ -47,10 +47,19 @@ func (q *Query) metric() (string, error) {
 
 	m := q.MetricQuery.MetricType
 	if m == "" {
-		idx := slices.Index(q.MetricQuery.Filters, "metric.type")
-		if idx != -1 && len(q.MetricQuery.Filters) > idx+2 {
-			m = q.MetricQuery.Filters[idx+2]
+		var queryFilters []string
+		if q.QueryType == "timeSeriesList" {
+			queryFilters = q.TimeSeriesList.Filters
 		} else {
+			queryFilters = q.MetricQuery.Filters
+		}
+
+		idx := slices.Index(queryFilters, "metric.type")
+		if idx != -1 && len(queryFilters) > idx+2 {
+			m = queryFilters[idx+2]
+		}
+
+		if m == "" {
 			return "", fmt.Errorf("no metric found")
 		}
 	}
@@ -64,16 +73,35 @@ func (q *Query) metric() (string, error) {
 
 func (q *Query) filter() ([]string, error) {
 	filters := []string{}
-	if q.MetricQuery.ProjectName != "" {
-		filters = append(filters, q.MetricQuery.ProjectName)
+	var queryFilters []string
+	if q.QueryType == "timeSeriesList" {
+		queryFilters = q.TimeSeriesList.Filters
+	} else {
+		queryFilters = q.MetricQuery.Filters
 	}
+
+	for i, f := range queryFilters {
+		if strings.HasPrefix(f, "metric.label") {
+			label := strings.Split(f, ".")[2]
+			value := queryFilters[i+2]
+			filters = append(filters, fmt.Sprintf("%s:%s", label, value))
+		}
+	}
+
 	return filters, nil
 }
 
 func (q *Query) groups() ([]string, error) {
 	groupBys := []string{}
 
-	if q.MetricQuery.AliasBy != "" {
+	if q.QueryType == "timeSeriesList" && q.TimeSeriesList.AliasBy != "" {
+		if !(strings.HasPrefix(q.TimeSeriesList.AliasBy, "{{") && strings.HasSuffix(q.TimeSeriesList.AliasBy, "}}")) {
+			return groupBys, fmt.Errorf("unsuported alias %s", q.TimeSeriesList.AliasBy)
+		}
+		alias := q.TimeSeriesList.AliasBy[2 : len(q.TimeSeriesList.AliasBy)-2]
+		splitAlias := strings.Split(alias, ".")[2:]
+		groupBys = append(groupBys, strings.Join(splitAlias, "."))
+	} else if q.MetricQuery.AliasBy != "" {
 		if !(strings.HasPrefix(q.MetricQuery.AliasBy, "{{") && strings.HasSuffix(q.MetricQuery.AliasBy, "}}")) {
 			return groupBys, fmt.Errorf("unsuported alias %s", q.MetricQuery.AliasBy)
 		}
@@ -86,27 +114,46 @@ func (q *Query) groups() ([]string, error) {
 		groupBys = append(groupBys, strings.Join(strings.Split(g, ".")[2:], "."))
 	}
 
+	for _, g := range q.TimeSeriesList.GroupBys {
+		groupBys = append(groupBys, strings.Join(strings.Split(g, ".")[2:], "."))
+	}
+
 	return groupBys, nil
 }
 
 func (q *Query) aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, error) {
-	agg, ok := alignmentType[q.MetricQuery.PerSeriesAligner]
+	var aligner string
+	if q.QueryType == "timeSeriesList" {
+		aligner = q.TimeSeriesList.PerSeriesAligner
+	} else {
+		aligner = q.MetricQuery.PerSeriesAligner
+	}
+	agg, ok := alignmentType[aligner]
 	if !ok {
-		return "", fmt.Errorf("alignement type %s not supported", q.MetricQuery.PerSeriesAligner)
+		return "", fmt.Errorf("alignement type %s not supported", aligner)
 	}
 	return agg, nil
 }
 
 func (q *Query) function() dd.FormulaAndFunctionMetricFunction {
-	if q.MetricQuery.PerSeriesAligner == "ALIGN_RATE" {
+	var aligner string
+	var metricKind string
+	if q.QueryType == "timeSeriesList" {
+		aligner = q.TimeSeriesList.PerSeriesAligner
+		metricKind = q.TimeSeriesList.MetricKind
+	} else {
+		aligner = q.MetricQuery.PerSeriesAligner
+		metricKind = q.MetricQuery.MetricKind
+	}
+	if aligner == "ALIGN_RATE" {
 		return "as_rate()"
 	}
 
-	if q.MetricQuery.PerSeriesAligner == "ALIGN_DELTA" {
+	if aligner == "ALIGN_DELTA" {
 		return "as_count()"
 	}
 
-	if q.MetricQuery.MetricKind == "DELTA" {
+	if metricKind == "DELTA" {
 		return "as_count()"
 	}
 
@@ -117,7 +164,7 @@ func (q *Query) build() (string, error) {
 	var err error
 	query := dd.Query{}
 
-	if q.QueryType != "metrics" {
+	if !slices.Contains([]string{"metrics", "timeSeriesList"}, q.QueryType) {
 		return "", fmt.Errorf("unsupported query mode %s", q.QueryType)
 	}
 

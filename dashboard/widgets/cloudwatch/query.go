@@ -31,23 +31,32 @@ func (q *Query) metric() string {
 	namespace := strings.Join(strings.Split(strings.ToLower(q.Namespace), "/"), ".")
 
 	metricName := stringy.New(q.MetricName)
-	metricName.SnakeCase().ToLower()
 	return strings.Join([]string{namespace, metricName.SnakeCase().ToLower()}, ".")
 }
 
 func (q *Query) filter() []string {
 	variables := []string{}
-	for _, v := range q.Dimensions {
+	for dim, v := range q.Dimensions {
 		if v != "*" {
-			variables = append(variables, fmt.Sprint(v))
+			dimName := stringy.New(dim)
+			variables = append(variables, fmt.Sprintf("%s:%s", dimName.SnakeCase().ToLower(), v))
 		}
+	}
+	if q.Region != "" {
+		variables = append(variables, q.Region)
 	}
 	return variables
 }
 
-// TODO: to be implemented
 func (q *Query) groups() []string {
-	return []string{}
+	variables := []string{}
+	for dim, v := range q.Dimensions {
+		if v == "*" {
+			dimName := stringy.New(dim)
+			variables = append(variables, dimName.SnakeCase().ToLower())
+		}
+	}
+	return variables
 }
 
 func (q *Query) aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, error) {
@@ -94,9 +103,13 @@ func (q *Query) build() (string, error) {
 }
 
 func (q *Query) formula() (*datadogV1.WidgetFormula, error) {
-	if q.Expression == "" {
+	if q.Type != "math" {
 		return datadogV1.NewWidgetFormula(q.id()), nil
 	}
-	formula := cloudwatchFormula{expression: q.Expression}
-	return formula.build()
+
+	if q.Expression == "" {
+		return nil, nil
+	}
+
+	return datadogV1.NewWidgetFormula(strings.ReplaceAll(q.Expression, "$", "")), nil
 }
