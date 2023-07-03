@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"fmt"
 	"grafana_to_datadog/dashboard/widgets"
 	"grafana_to_datadog/grafana"
 
@@ -32,8 +33,9 @@ func (c *dashboardConvertor) init() {
 }
 
 func (c *dashboardConvertor) build() *datadogV1.Dashboard {
-	dash := datadogV1.NewDashboard("ordered", c.graf.Title, c.widgets)
-	dash.Description.Set(&c.graf.Description)
+	dash := datadogV1.NewDashboard(datadogV1.DASHBOARDLAYOUTTYPE_ORDERED, c.graf.Title, c.widgets)
+	description := fmt.Sprintf("%s\n\ngenerated with https://github.com/abruneau/grafana_to_datadog", c.graf.Description)
+	dash.Description.Set(&description)
 	dash.TemplateVariables = c.templateVariables
 	return dash
 }
