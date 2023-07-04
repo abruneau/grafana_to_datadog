@@ -7,7 +7,10 @@ import (
 
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 )
+
+var templateVariablesBlacklist = []string{"alignmentPeriod"}
 
 type dashboardConvertor struct {
 	graf              *grafana.Dashboard
@@ -42,7 +45,7 @@ func (c *dashboardConvertor) build() *datadogV1.Dashboard {
 
 func (c *dashboardConvertor) extractTemplateVariables() {
 	for _, v := range c.graf.Templating.List {
-		if v.Type == "query" {
+		if v.Type == "query" && !slices.Contains(templateVariablesBlacklist, v.Name) {
 			tv := datadogV1.NewDashboardTemplateVariable(v.Name)
 			tv.SetPrefix(v.Name)
 			c.templateVariables = append(c.templateVariables, *tv)
