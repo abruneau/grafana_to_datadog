@@ -11,7 +11,9 @@ import (
 )
 
 var displayMap = map[string]datadogV1.WidgetDisplayType{
-	"line": datadogV1.WIDGETDISPLAYTYPE_LINE,
+	"line":   datadogV1.WIDGETDISPLAYTYPE_LINE,
+	"bar":    datadogV1.WIDGETDISPLAYTYPE_BARS,
+	"points": datadogV1.WIDGETDISPLAYTYPE_LINE,
 }
 
 func newTimeseriesDefinition(source string, panel grafana.Panel, logger *log.Entry) (datadogV1.WidgetDefinition, error) {
@@ -47,7 +49,9 @@ func newTimeseriesRequest(source string, panel grafana.Panel, logger *log.Entry)
 		return nil, err
 	}
 
-	if panel.FieldConfig.Defaults.Custom.DrawStyle != "" {
+	if panel.Type == "barchart" {
+		widgetRequest.SetDisplayType(datadogV1.WIDGETDISPLAYTYPE_BARS)
+	} else if panel.FieldConfig.Defaults.Custom.DrawStyle != "" {
 		widgetRequest.SetDisplayType(displayMap[panel.FieldConfig.Defaults.Custom.DrawStyle])
 	}
 	widgetRequest.SetResponseFormat(datadogV1.FORMULAANDFUNCTIONRESPONSEFORMAT_TIMESERIES)

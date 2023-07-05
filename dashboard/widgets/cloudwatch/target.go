@@ -55,6 +55,7 @@ type Target struct {
 	SQLExpression string   `json:"sqlExpression"`
 	Statistic     string   `json:"statistic"`
 	Statistics    []string `json:"statistics"`
+	Type          string   `json:"type"`
 	Hide          bool     `json:"hide"`
 }
 

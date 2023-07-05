@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -127,8 +128,11 @@ var rootCmd = &cobra.Command{
 			json.Unmarshal(dat, dash)
 			res, err := dashboard.ConvertDashboard(dash, contextLogger).MarshalJSON()
 			check(err)
+			var prettyJSON bytes.Buffer
+			err = json.Indent(&prettyJSON, res, "", "\t")
+			check(err)
 			output := path.Join(outputDirectory, fileName)
-			err = os.WriteFile(output, res, 0644)
+			err = os.WriteFile(output, prettyJSON.Bytes(), 0644)
 			check(err)
 		}
 	},

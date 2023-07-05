@@ -15,14 +15,16 @@ func ConvertWidget(source string, panel grafana.Panel, logger *log.Entry) (datad
 	var err error = nil
 
 	switch panel.Type {
-	case "timeseries", "graph":
-		definition, err = newTimeseriesDefinition(source, panel, logger)
-	case "text":
-		definition, err = newTextDefinition(panel)
-	case "stat":
-		definition, err = newQueryValueDefinition(source, panel, logger)
+	case "piechart":
+		definition, err = newPiechartDefinition(source, panel, logger)
 	case "row":
 		definition, err = newGroupDefinition(panel)
+	case "stat":
+		definition, err = newQueryValueDefinition(source, panel, logger)
+	case "text":
+		definition, err = newTextDefinition(panel)
+	case "timeseries", "graph", "barchart":
+		definition, err = newTimeseriesDefinition(source, panel, logger)
 	default:
 		err = fmt.Errorf("unkown type: %s", panel.Type)
 	}
