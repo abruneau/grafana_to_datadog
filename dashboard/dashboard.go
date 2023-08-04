@@ -55,23 +55,41 @@ func (c *dashboardConvertor) extractTemplateVariables() {
 	}
 }
 
+func (c *dashboardConvertor) processPanel(panel grafana.Panel) *datadogV1.Widget {
+	widget, err := widgets.ConvertWidget(c.datasource, panel, c.logger)
+	if err != nil {
+		c.logger.Error(err)
+		return nil
+	}
+
+	for _, p := range panel.Panels {
+		childWidget := c.processPanel(p)
+		if childWidget == nil {
+			continue
+		}
+		widget.Definition.GroupWidgetDefinition.Widgets = append(widget.Definition.GroupWidgetDefinition.Widgets, *childWidget)
+	}
+
+	return &widget
+}
+
 func (c *dashboardConvertor) extractWidgets() {
 	var lastGroupWidget *datadogV1.Widget
 	for _, panel := range c.graf.Panels {
-		widget, err := widgets.ConvertWidget(c.datasource, panel, c.logger)
-		if err != nil {
-			c.logger.Error(err)
-		} else {
+		widget := c.processPanel(panel)
 
-			if lastGroupWidget != nil && widget.Definition.GroupWidgetDefinition == nil {
-				lastGroupWidget.Definition.GroupWidgetDefinition.Widgets = append(lastGroupWidget.Definition.GroupWidgetDefinition.Widgets, widget)
-			} else {
-				c.widgets = append(c.widgets, widget)
-			}
-
+		if widget == nil {
+			continue
 		}
+
+		if lastGroupWidget != nil && widget.Definition.GroupWidgetDefinition == nil {
+			lastGroupWidget.Definition.GroupWidgetDefinition.Widgets = append(lastGroupWidget.Definition.GroupWidgetDefinition.Widgets, *widget)
+		} else {
+			c.widgets = append(c.widgets, *widget)
+		}
+
 		if widget.Definition.GroupWidgetDefinition != nil {
-			lastGroupWidget = &widget
+			lastGroupWidget = widget
 		}
 	}
 }

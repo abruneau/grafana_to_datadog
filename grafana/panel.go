@@ -82,6 +82,7 @@ type Panel struct {
 		GraphMode string `json:"graphMode"`
 		Mode      string `json:"mode"`
 	} `json:"options,omitempty"`
+	Panels        []Panel
 	PluginVersion string                   `json:"pluginVersion"`
 	Targets       []map[string]interface{} `json:"targets,omitempty"`
 	Title         string                   `json:"title"`
