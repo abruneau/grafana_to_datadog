@@ -78,7 +78,7 @@ func (q *Query) Aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, err
 	agg, ok := statisticMap[stats]
 
 	if !ok {
-		return "", fmt.Errorf("alignement type %s not supported", q.MetricQuery.PerSeriesAligner)
+		return "", shared.AggregationTypeError(q.MetricQuery.PerSeriesAligner)
 	}
 	return agg, nil
 }

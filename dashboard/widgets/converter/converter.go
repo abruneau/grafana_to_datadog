@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+	"grafana_to_datadog/dashboard/widgets/converter/cloudwatch"
 	"grafana_to_datadog/dashboard/widgets/converter/stackdriver"
 	"grafana_to_datadog/dashboard/widgets/shared"
 	"grafana_to_datadog/grafana"
@@ -12,6 +13,7 @@ import (
 type NewQueryFunction func(target map[string]interface{}) shared.Query
 
 var sourceMapper = map[string]NewQueryFunction{
+	"cloudwatch":  cloudwatch.NewQuery,
 	"stackdriver": stackdriver.NewQuery,
 }
 
