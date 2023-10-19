@@ -1,7 +1,5 @@
 package cloudwatch
 
-import "github.com/mitchellh/mapstructure"
-
 type Target struct {
 	Alias       string `json:"alias"`
 	Application struct {
@@ -57,10 +55,4 @@ type Target struct {
 	Statistics    []string `json:"statistics"`
 	Type          string   `json:"type"`
 	Hide          bool     `json:"hide"`
-}
-
-func NewTarget(target map[string]interface{}) *Target {
-	var output Target
-	mapstructure.Decode(target, &output)
-	return &output
 }

@@ -2,6 +2,7 @@ package stackdriver
 
 import (
 	"fmt"
+	"grafana_to_datadog/dashboard/widgets/shared"
 	"grafana_to_datadog/dd"
 	"strings"
 
@@ -26,7 +27,15 @@ type Query struct {
 	*Target
 }
 
-func (q *Query) id() string {
+func NewQuery(target map[string]interface{}) shared.Query {
+	t := shared.NewTarget[Target](target)
+	query := &Query{
+		t,
+	}
+	return query
+}
+
+func (q *Query) Id() string {
 	id := q.RefID
 	// if q.ID != "" {
 	// 	id = q.ID
@@ -121,7 +130,7 @@ func (q *Query) groups() ([]string, error) {
 	return groupBys, nil
 }
 
-func (q *Query) aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, error) {
+func (q *Query) Aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, error) {
 	var aligner string
 	if q.QueryType == "timeSeriesList" {
 		aligner = q.TimeSeriesList.PerSeriesAligner
@@ -160,7 +169,7 @@ func (q *Query) function() dd.FormulaAndFunctionMetricFunction {
 	return ""
 }
 
-func (q *Query) build() (string, error) {
+func (q *Query) Build() (string, error) {
 	var err error
 	query := dd.Query{}
 
@@ -173,7 +182,7 @@ func (q *Query) build() (string, error) {
 		return "", err
 	}
 
-	query.Aggregator, err = q.aggregator()
+	query.Aggregator, err = q.Aggregator()
 	if err != nil {
 		return "", err
 	}
@@ -193,9 +202,9 @@ func (q *Query) build() (string, error) {
 	return query.Build()
 }
 
-func (q *Query) formula() string {
+func (q *Query) Formula() string {
 	if q.Hide {
 		return ""
 	}
-	return q.id()
+	return q.Id()
 }

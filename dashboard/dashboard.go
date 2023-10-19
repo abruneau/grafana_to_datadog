@@ -56,7 +56,7 @@ func (c *dashboardConvertor) extractTemplateVariables() {
 }
 
 func (c *dashboardConvertor) processPanel(panel grafana.Panel) *datadogV1.Widget {
-	widget, err := widgets.ConvertWidget(c.datasource, panel, c.logger)
+	widget, err := widgets.ConvertWidget(c.datasource, panel)
 	if err != nil {
 		c.logger.Error(err)
 		return nil
