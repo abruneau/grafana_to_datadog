@@ -82,7 +82,7 @@ func TestAggregator(t *testing.T) {
 	for key, value := range alignmentType {
 		testTarget := Query{&Target{}}
 		testTarget.MetricQuery.PerSeriesAligner = key
-		agg, err := testTarget.aggregator()
+		agg, err := testTarget.Aggregator()
 		assert.Equal(t, value, agg)
 		assert.Nil(t, err)
 	}

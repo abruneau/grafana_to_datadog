@@ -1,9 +1,5 @@
 package stackdriver
 
-import (
-	"github.com/mitchellh/mapstructure"
-)
-
 type Target struct {
 	Datasource struct {
 		UID string `json:"uid"`
@@ -35,10 +31,4 @@ type Target struct {
 	} `json:"timeSeriesList"`
 	QueryType string `json:"queryType"`
 	RefID     string `json:"refId"`
-}
-
-func NewTarget(target map[string]interface{}) *Target {
-	var output Target
-	mapstructure.Decode(target, &output)
-	return &output
 }

@@ -1,13 +1,10 @@
 package widgets
 
 import (
-	"fmt"
-	"grafana_to_datadog/dashboard/widgets/cloudwatch"
-	"grafana_to_datadog/dashboard/widgets/stackdriver"
+	"grafana_to_datadog/dashboard/widgets/converter"
 	"grafana_to_datadog/grafana"
 
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
-	log "github.com/sirupsen/logrus"
 )
 
 var displayMap = map[string]datadogV1.WidgetDisplayType{
@@ -16,8 +13,8 @@ var displayMap = map[string]datadogV1.WidgetDisplayType{
 	"points": datadogV1.WIDGETDISPLAYTYPE_LINE,
 }
 
-func newTimeseriesDefinition(source string, panel grafana.Panel, logger *log.Entry) (datadogV1.WidgetDefinition, error) {
-	request, err := newTimeseriesRequest(source, panel, logger)
+func newTimeseriesDefinition(source string, panel grafana.Panel) (datadogV1.WidgetDefinition, error) {
+	request, err := newTimeseriesRequest(source, panel)
 	if err != nil {
 		return datadogV1.WidgetDefinition{}, err
 	}
@@ -28,7 +25,7 @@ func newTimeseriesDefinition(source string, panel grafana.Panel, logger *log.Ent
 	return datadogV1.TimeseriesWidgetDefinitionAsWidgetDefinition(tsDefinition), nil
 }
 
-func newTimeseriesRequest(source string, panel grafana.Panel, logger *log.Entry) ([]datadogV1.TimeseriesWidgetRequest, error) {
+func newTimeseriesRequest(source string, panel grafana.Panel) ([]datadogV1.TimeseriesWidgetRequest, error) {
 	var widgetRequest *datadogV1.TimeseriesWidgetRequest
 	var err error
 
@@ -36,14 +33,12 @@ func newTimeseriesRequest(source string, panel grafana.Panel, logger *log.Entry)
 		source = panel.Datasource.Type
 	}
 
-	switch source {
-	case "cloudwatch":
-		widgetRequest, err = cloudwatch.NewTimeseriesWidgetRequest(panel, logger)
-	case "stackdriver":
-		widgetRequest, err = stackdriver.NewTimeseriesWidgetRequest(panel, logger)
-	default:
-		err = fmt.Errorf("unknown datasource %s", panel.Datasource.Type)
+	con, err := converter.NewConverter(source)
+	if err != nil {
+		return nil, err
 	}
+
+	widgetRequest, err = con.NewTimeseriesWidgetRequest(panel)
 
 	if err != nil {
 		return nil, err

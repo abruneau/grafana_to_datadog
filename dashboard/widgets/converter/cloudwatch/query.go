@@ -2,6 +2,7 @@ package cloudwatch
 
 import (
 	"fmt"
+	"grafana_to_datadog/dashboard/widgets/shared"
 	"grafana_to_datadog/dd"
 	"strings"
 
@@ -15,11 +16,19 @@ var statisticMap = map[string]datadogV1.FormulaAndFunctionMetricAggregation{
 	"Maximum": "max",
 }
 
+func NewQuery(target map[string]interface{}) shared.Query {
+	t := shared.NewTarget[Target](target)
+	query := &Query{
+		t,
+	}
+	return query
+}
+
 type Query struct {
 	*Target
 }
 
-func (q *Query) id() string {
+func (q *Query) Id() string {
 	id := q.RefID
 	if q.ID != "" {
 		id = q.ID
@@ -59,7 +68,7 @@ func (q *Query) groups() []string {
 	return variables
 }
 
-func (q *Query) aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, error) {
+func (q *Query) Aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, error) {
 	stats := "Average"
 	if q.Statistic != "" {
 		stats = q.Statistic
@@ -79,7 +88,7 @@ func (q *Query) function() dd.FormulaAndFunctionMetricFunction {
 	return "as_count()"
 }
 
-func (q *Query) build() (string, error) {
+func (q *Query) Build() (string, error) {
 	var err error
 	query := dd.Query{}
 	if q.QueryMode == "Logs" {
@@ -92,7 +101,7 @@ func (q *Query) build() (string, error) {
 
 	query.GroupBys = q.groups()
 
-	query.Aggregator, err = q.aggregator()
+	query.Aggregator, err = q.Aggregator()
 	if err != nil {
 		return "", err
 	}
@@ -102,14 +111,14 @@ func (q *Query) build() (string, error) {
 	return query.Build()
 }
 
-func (q *Query) formula() (*datadogV1.WidgetFormula, error) {
+func (q *Query) Formula() string {
 	if q.Type != "math" {
-		return datadogV1.NewWidgetFormula(q.id()), nil
+		return q.Id()
 	}
 
 	if q.Expression == "" {
-		return nil, nil
+		return ""
 	}
 
-	return datadogV1.NewWidgetFormula(strings.ReplaceAll(q.Expression, "$", "")), nil
+	return strings.ReplaceAll(q.Expression, "$", "")
 }

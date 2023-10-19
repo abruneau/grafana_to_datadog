@@ -60,20 +60,20 @@ func TestAggregator(t *testing.T) {
 	for key, value := range statisticMap {
 		testTarget := Query{&Target{}}
 		testTarget.Statistic = key
-		agg, err := testTarget.aggregator()
+		agg, err := testTarget.Aggregator()
 		assert.Equal(t, value, agg)
 		assert.Nil(t, err)
 	}
 	for key, value := range statisticMap {
 		testTarget := Query{&Target{}}
 		testTarget.Statistics = []string{key}
-		agg, err := testTarget.aggregator()
+		agg, err := testTarget.Aggregator()
 		assert.Equal(t, value, agg)
 		assert.Nil(t, err)
 	}
 
 	testTarget := Query{&Target{}}
-	agg, err := testTarget.aggregator()
+	agg, err := testTarget.Aggregator()
 	assert.Equal(t, datadogV1.FormulaAndFunctionMetricAggregation("avg"), agg)
 	assert.Nil(t, err)
 }

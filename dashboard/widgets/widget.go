@@ -5,10 +5,9 @@ import (
 	"grafana_to_datadog/grafana"
 
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
-	log "github.com/sirupsen/logrus"
 )
 
-func ConvertWidget(source string, panel grafana.Panel, logger *log.Entry) (datadogV1.Widget, error) {
+func ConvertWidget(source string, panel grafana.Panel) (datadogV1.Widget, error) {
 
 	widget := datadogV1.NewWidgetWithDefaults()
 	var definition datadogV1.WidgetDefinition
@@ -16,15 +15,15 @@ func ConvertWidget(source string, panel grafana.Panel, logger *log.Entry) (datad
 
 	switch panel.Type {
 	case "piechart":
-		definition, err = newPiechartDefinition(source, panel, logger)
+		definition, err = newPiechartDefinition(source, panel)
 	case "row":
 		definition, err = newGroupDefinition(panel)
 	case "stat":
-		definition, err = newQueryValueDefinition(source, panel, logger)
+		definition, err = newQueryValueDefinition(source, panel)
 	case "text":
 		definition, err = newTextDefinition(panel)
 	case "timeseries", "graph", "barchart":
-		definition, err = newTimeseriesDefinition(source, panel, logger)
+		definition, err = newTimeseriesDefinition(source, panel)
 	default:
 		err = fmt.Errorf("unkown type: %s", panel.Type)
 	}
