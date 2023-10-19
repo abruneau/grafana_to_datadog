@@ -139,7 +139,7 @@ func (q *Query) Aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, err
 	}
 	agg, ok := alignmentType[aligner]
 	if !ok {
-		return "", fmt.Errorf("alignement type %s not supported", aligner)
+		return "", shared.AggregationTypeError(aligner)
 	}
 	return agg, nil
 }
