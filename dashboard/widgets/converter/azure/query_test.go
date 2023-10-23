@@ -57,7 +57,7 @@ func TestGroups(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		testTarget := Query{&Target{}, false}
+		testTarget := Query{&Target{}, true}
 		testTarget.AzureMonitor.Dimensions = test.input
 		m := testTarget.groups()
 		assert.Equal(t, test.expected, m)

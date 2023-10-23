@@ -71,7 +71,7 @@ func TestGroups(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		testTarget := Query{&Target{}, false}
+		testTarget := Query{&Target{}, true}
 		testTarget.MetricQuery.AliasBy = test.input
 		m, _ := testTarget.groups()
 		assert.Equal(t, test.expected, m)
