@@ -15,6 +15,8 @@ func newQueryValueDefinition(source string, panel grafana.Panel) (datadogV1.Widg
 	qvDefinition := datadogV1.NewQueryValueWidgetDefinition(request, datadogV1.QUERYVALUEWIDGETDEFINITIONTYPE_QUERY_VALUE)
 	qvDefinition.SetTitle(panel.Title)
 	qvDefinition.SetTitleSize("16")
+	qvDefinition.SetAutoscale(true)
+	qvDefinition.SetPrecision(2)
 
 	if panel.Options.GraphMode == "area" {
 		qvDefinition.TimeseriesBackground = datadogV1.NewTimeseriesBackground(datadogV1.TIMESERIESBACKGROUNDTYPE_AREA)
