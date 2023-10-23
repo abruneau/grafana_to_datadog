@@ -89,4 +89,6 @@ type Panel struct {
 	Type          string                   `json:"type"`
 	Editable      bool                     `json:"editable,omitempty"`
 	Error         bool                     `json:"error,omitempty"`
+	Mode          string                   `json:"mode"`
+	Content       string                   `json:"content"`
 }

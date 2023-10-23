@@ -13,18 +13,30 @@ func newTextDefinition(panel grafana.Panel) (datadogV1.WidgetDefinition, error) 
 	if panel.Title != "" {
 		markdown = fmt.Sprintf("# %s\n", panel.Title)
 	}
-	if panel.Options.Mode == "markdown" {
-		markdown = markdown + panel.Options.Content
-	} else if panel.Options.Mode == "html" {
+	var mode, content string
+
+	mode = panel.Mode
+	if panel.Mode == "" {
+		mode = panel.Options.Mode
+	}
+
+	content = panel.Content
+	if panel.Content == "" {
+		content = panel.Options.Content
+	}
+
+	if mode == "markdown" {
+		markdown = markdown + content
+	} else if mode == "html" {
 		converter := md.NewConverter("", true, nil)
-		m, err := converter.ConvertString(panel.Options.Content)
+		m, err := converter.ConvertString(content)
 		if err != nil {
-			markdown = markdown + panel.Options.Content
+			markdown = markdown + content
 		}
 		markdown = markdown + m
 
 	}
-	markdown = markdown + panel.Options.Content
+	// markdown = markdown + content
 	def := datadogV1.NewNoteWidgetDefinition(markdown, datadogV1.NOTEWIDGETDEFINITIONTYPE_NOTE)
 	def.SetShowTick(false)
 	def.SetBackgroundColor("white")

@@ -101,6 +101,10 @@ func (q *Query) metric() (string, error) {
 		ns = q.AzureMonitor.MetricNamespace
 	}
 
+	if ns[0] == byte('$') {
+		return "", fmt.Errorf("namespace as template variable not supported")
+	}
+
 	defParts := strings.Split(ns, ".")
 	if len(defParts) < 2 {
 		return "", fmt.Errorf("no namespace found")

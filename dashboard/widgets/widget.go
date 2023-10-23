@@ -19,7 +19,7 @@ func ConvertWidget(source string, panel grafana.Panel) (datadogV1.Widget, error)
 		definition, err = newPiechartDefinition(source, panel)
 	case "row":
 		definition, err = newGroupDefinition(panel)
-	case "stat":
+	case "stat", "singlestat":
 		definition, err = newQueryValueDefinition(source, panel)
 	case "text":
 		definition, err = newTextDefinition(panel)
