@@ -84,6 +84,12 @@ func (q *Query) metric() (string, error) {
 
 func (q *Query) filter() ([]string, error) {
 	filters := []string{}
+	if q.MetricQuery.ProjectName != "" {
+		filters = append(filters, q.MetricQuery.ProjectName)
+	}
+	if q.TimeSeriesList.ProjectName != "" {
+		filters = append(filters, q.TimeSeriesList.ProjectName)
+	}
 	var queryFilters []string
 	if q.QueryType == "timeSeriesList" {
 		queryFilters = q.TimeSeriesList.Filters
