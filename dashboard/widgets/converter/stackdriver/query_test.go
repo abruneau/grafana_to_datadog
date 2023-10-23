@@ -25,13 +25,13 @@ func TestMetric(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		testTarget := Query{&Target{}}
+		testTarget := Query{&Target{}, false}
 		testTarget.MetricQuery.MetricType = test.input
 		m, _ := testTarget.metric()
 		assert.Equal(t, test.expected, m)
 	}
 
-	testTarget := Query{&Target{}}
+	testTarget := Query{&Target{}, false}
 	testTarget.MetricQuery.Filters = []string{"resource.type",
 		"=",
 		"gce_instance",
@@ -43,7 +43,7 @@ func TestMetric(t *testing.T) {
 	m, _ := testTarget.metric()
 	assert.Equal(t, "gcp.gce.instance.cpu.utilization", m)
 
-	testTarget = Query{&Target{}}
+	testTarget = Query{&Target{}, false}
 	testTarget.MetricQuery.Filters = []string{"metric.label.instance_name",
 		"=",
 		"gke-agent-core-benchmark-default-pool-4b1e15cf-bue8",
@@ -71,7 +71,7 @@ func TestGroups(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		testTarget := Query{&Target{}}
+		testTarget := Query{&Target{}, false}
 		testTarget.MetricQuery.AliasBy = test.input
 		m, _ := testTarget.groups()
 		assert.Equal(t, test.expected, m)
@@ -80,7 +80,7 @@ func TestGroups(t *testing.T) {
 
 func TestAggregator(t *testing.T) {
 	for key, value := range alignmentType {
-		testTarget := Query{&Target{}}
+		testTarget := Query{&Target{}, false}
 		testTarget.MetricQuery.PerSeriesAligner = key
 		agg, err := testTarget.Aggregator()
 		assert.Equal(t, value, agg)
@@ -100,7 +100,7 @@ func TestFilter(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		testTarget := Query{&Target{}}
+		testTarget := Query{&Target{}, false}
 		testTarget.TimeSeriesList.Filters = test.input
 		testTarget.QueryType = "timeSeriesList"
 		m, _ := testTarget.filter()
@@ -109,20 +109,20 @@ func TestFilter(t *testing.T) {
 }
 
 func TestFunction(t *testing.T) {
-	testTarget := Query{&Target{}}
+	testTarget := Query{&Target{}, false}
 	testTarget.MetricQuery.PerSeriesAligner = "ALIGN_RATE"
 	f := testTarget.function()
 	assert.Equal(t, dd.FORMULAANDFUNCTIONMETRICFUNCTION_RATE, f)
-	testTarget = Query{&Target{}}
+	testTarget = Query{&Target{}, false}
 	testTarget.MetricQuery.PerSeriesAligner = "ALIGN_DELTA"
 	f = testTarget.function()
 	assert.Equal(t, dd.FORMULAANDFUNCTIONMETRICFUNCTION_COUNT, f)
-	testTarget = Query{&Target{}}
+	testTarget = Query{&Target{}, false}
 	testTarget.MetricQuery.PerSeriesAligner = ""
 	testTarget.MetricQuery.MetricKind = "DELTA"
 	f = testTarget.function()
 	assert.Equal(t, dd.FORMULAANDFUNCTIONMETRICFUNCTION_COUNT, f)
-	testTarget = Query{&Target{}}
+	testTarget = Query{&Target{}, false}
 	testTarget.MetricQuery.PerSeriesAligner = ""
 	testTarget.MetricQuery.MetricKind = ""
 	f = testTarget.function()

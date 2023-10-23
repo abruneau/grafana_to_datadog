@@ -2,15 +2,13 @@ package dashboard
 
 import (
 	"fmt"
+	templatevariable "grafana_to_datadog/dashboard/template_variable"
 	"grafana_to_datadog/dashboard/widgets"
 	"grafana_to_datadog/grafana"
 
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/exp/slices"
 )
-
-var templateVariablesBlacklist = []string{"alignmentPeriod"}
 
 type dashboardConvertor struct {
 	graf              *grafana.Dashboard
@@ -45,12 +43,13 @@ func (c *dashboardConvertor) build() *datadogV1.Dashboard {
 
 func (c *dashboardConvertor) extractTemplateVariables() {
 	for _, v := range c.graf.Templating.List {
-		if v.Type == "query" && !slices.Contains(templateVariablesBlacklist, v.Name) {
-			tv := datadogV1.NewDashboardTemplateVariable(v.Name)
-			tv.SetPrefix(v.Name)
-			c.templateVariables = append(c.templateVariables, *tv)
-		} else if v.Type == "datasource" {
+		if v.Type == "datasource" {
 			c.datasource = v.Query
+		} else if v.Type == "query" {
+			tv := templatevariable.GetTemplateVariable(c.datasource, v)
+			if tv != nil {
+				c.templateVariables = append(c.templateVariables, *tv)
+			}
 		}
 	}
 }

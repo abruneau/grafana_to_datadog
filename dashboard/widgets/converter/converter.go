@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+	"grafana_to_datadog/dashboard/widgets/converter/azure"
 	"grafana_to_datadog/dashboard/widgets/converter/cloudwatch"
 	"grafana_to_datadog/dashboard/widgets/converter/stackdriver"
 	"grafana_to_datadog/dashboard/widgets/shared"
@@ -10,11 +11,12 @@ import (
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
 )
 
-type NewQueryFunction func(target map[string]interface{}) shared.Query
+type NewQueryFunction func(target map[string]interface{}, groupBy bool) shared.Query
 
 var sourceMapper = map[string]NewQueryFunction{
-	"cloudwatch":  cloudwatch.NewQuery,
-	"stackdriver": stackdriver.NewQuery,
+	"grafana-azure-monitor-datasource": azure.NewQuery,
+	"cloudwatch":                       cloudwatch.NewQuery,
+	"stackdriver":                      stackdriver.NewQuery,
 }
 
 type Converter struct {
@@ -33,12 +35,12 @@ func NewConverter(source string) (*Converter, error) {
 	return conv, nil
 }
 
-func (c *Converter) parseTargets(panel grafana.Panel, aggregate bool) (queries []datadogV1.FormulaAndFunctionQueryDefinition, formulas []datadogV1.WidgetFormula, err error) {
+func (c *Converter) parseTargets(panel grafana.Panel, aggregate bool, groupBy bool) (queries []datadogV1.FormulaAndFunctionQueryDefinition, formulas []datadogV1.WidgetFormula, err error) {
 	queries = []datadogV1.FormulaAndFunctionQueryDefinition{}
 	formulas = []datadogV1.WidgetFormula{}
 
 	for _, t := range panel.Targets {
-		query := c.newQuery(t)
+		query := c.newQuery(t, groupBy)
 
 		id := query.Id()
 		targetQuery, err := query.Build()
@@ -65,7 +67,7 @@ func (c *Converter) parseTargets(panel grafana.Panel, aggregate bool) (queries [
 func (c *Converter) NewTimeseriesWidgetRequest(panel grafana.Panel) (*datadogV1.TimeseriesWidgetRequest, error) {
 	var err error
 	widgetRequest := datadogV1.NewTimeseriesWidgetRequest()
-	widgetRequest.Queries, widgetRequest.Formulas, err = c.parseTargets(panel, false)
+	widgetRequest.Queries, widgetRequest.Formulas, err = c.parseTargets(panel, false, true)
 
 	return widgetRequest, err
 }
@@ -73,7 +75,7 @@ func (c *Converter) NewTimeseriesWidgetRequest(panel grafana.Panel) (*datadogV1.
 func (c *Converter) NewQueryValueWidgetRequest(panel grafana.Panel) (*datadogV1.QueryValueWidgetRequest, error) {
 	var err error
 	widgetRequest := datadogV1.NewQueryValueWidgetRequest()
-	widgetRequest.Queries, widgetRequest.Formulas, err = c.parseTargets(panel, true)
+	widgetRequest.Queries, widgetRequest.Formulas, err = c.parseTargets(panel, true, false)
 
 	return widgetRequest, err
 }
@@ -81,7 +83,7 @@ func (c *Converter) NewQueryValueWidgetRequest(panel grafana.Panel) (*datadogV1.
 func (c *Converter) NewSunburstWidgetRequest(panel grafana.Panel) (*datadogV1.SunburstWidgetRequest, error) {
 	var err error
 	widgetRequest := datadogV1.NewSunburstWidgetRequest()
-	widgetRequest.Queries, widgetRequest.Formulas, err = c.parseTargets(panel, true)
+	widgetRequest.Queries, widgetRequest.Formulas, err = c.parseTargets(panel, true, true)
 
 	return widgetRequest, err
 }

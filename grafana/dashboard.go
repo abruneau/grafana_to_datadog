@@ -41,30 +41,7 @@ type Dashboard struct {
 	Style                string        `json:"style"`
 	Tags                 []string      `json:"tags"`
 	Templating           struct {
-		List []struct {
-			Current struct {
-			} `json:"current"`
-			Hide        int           `json:"hide"`
-			IncludeAll  bool          `json:"includeAll"`
-			Label       string        `json:"label"`
-			Multi       bool          `json:"multi"`
-			Name        string        `json:"name"`
-			Options     []interface{} `json:"options"`
-			Query       string        `json:"query"`
-			QueryValue  string        `json:"queryValue,omitempty"`
-			Refresh     int           `json:"refresh"`
-			Regex       string        `json:"regex"`
-			SkipURLSync bool          `json:"skipUrlSync"`
-			Type        string        `json:"type"`
-			Datasource  struct {
-				UID string `json:"uid"`
-			} `json:"datasource,omitempty"`
-			Definition     string `json:"definition,omitempty"`
-			Sort           int    `json:"sort,omitempty"`
-			TagValuesQuery string `json:"tagValuesQuery,omitempty"`
-			TagsQuery      string `json:"tagsQuery,omitempty"`
-			UseTags        bool   `json:"useTags,omitempty"`
-		} `json:"list"`
+		List []TemplateVariable `json:"list"`
 	} `json:"templating"`
 	Time struct {
 		From string `json:"from"`
@@ -79,4 +56,29 @@ type Dashboard struct {
 	UID       string `json:"uid"`
 	Version   int    `json:"version"`
 	WeekStart string `json:"weekStart"`
+}
+
+type TemplateVariable struct {
+	Current struct {
+	} `json:"current"`
+	Hide        int           `json:"hide"`
+	IncludeAll  bool          `json:"includeAll"`
+	Label       string        `json:"label"`
+	Multi       bool          `json:"multi"`
+	Name        string        `json:"name"`
+	Options     []interface{} `json:"options"`
+	Query       string        `json:"query"`
+	QueryValue  string        `json:"queryValue,omitempty"`
+	Refresh     int           `json:"refresh"`
+	Regex       string        `json:"regex"`
+	SkipURLSync bool          `json:"skipUrlSync"`
+	Type        string        `json:"type"`
+	Datasource  struct {
+		UID string `json:"uid"`
+	} `json:"datasource,omitempty"`
+	Definition     string `json:"definition,omitempty"`
+	Sort           int    `json:"sort,omitempty"`
+	TagValuesQuery string `json:"tagValuesQuery,omitempty"`
+	TagsQuery      string `json:"tagsQuery,omitempty"`
+	UseTags        bool   `json:"useTags,omitempty"`
 }

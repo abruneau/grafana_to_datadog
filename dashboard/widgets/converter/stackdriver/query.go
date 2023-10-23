@@ -25,12 +25,14 @@ var alignmentType = map[string]datadogV1.FormulaAndFunctionMetricAggregation{
 
 type Query struct {
 	*Target
+	groupBy bool
 }
 
-func NewQuery(target map[string]interface{}) shared.Query {
+func NewQuery(target map[string]interface{}, groupBy bool) shared.Query {
 	t := shared.NewTarget[Target](target)
 	query := &Query{
-		t,
+		Target:  t,
+		groupBy: groupBy,
 	}
 	return query
 }
@@ -102,6 +104,9 @@ func (q *Query) filter() ([]string, error) {
 
 func (q *Query) groups() ([]string, error) {
 	groupBys := []string{}
+	if !q.groupBy {
+		return groupBys, nil
+	}
 
 	if q.QueryType == "timeSeriesList" && q.TimeSeriesList.AliasBy != "" {
 		if !(strings.HasPrefix(q.TimeSeriesList.AliasBy, "{{") && strings.HasSuffix(q.TimeSeriesList.AliasBy, "}}")) {

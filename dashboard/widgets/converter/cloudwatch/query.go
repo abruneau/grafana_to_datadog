@@ -16,16 +16,18 @@ var statisticMap = map[string]datadogV1.FormulaAndFunctionMetricAggregation{
 	"Maximum": "max",
 }
 
-func NewQuery(target map[string]interface{}) shared.Query {
+func NewQuery(target map[string]interface{}, groupBy bool) shared.Query {
 	t := shared.NewTarget[Target](target)
 	query := &Query{
-		t,
+		Target:  t,
+		groupBy: groupBy,
 	}
 	return query
 }
 
 type Query struct {
 	*Target
+	groupBy bool
 }
 
 func (q *Query) Id() string {
@@ -59,6 +61,9 @@ func (q *Query) filter() []string {
 
 func (q *Query) groups() []string {
 	variables := []string{}
+	if !q.groupBy {
+		return variables
+	}
 	for dim, v := range q.Dimensions {
 		if v == "*" {
 			dimName := stringy.New(dim)
