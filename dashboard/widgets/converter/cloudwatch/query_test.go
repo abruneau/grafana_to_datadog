@@ -24,7 +24,7 @@ func TestMetric(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		testTarget := Query{&Target{}}
+		testTarget := Query{&Target{}, false}
 		testTarget.Namespace = test.input.namespace
 		testTarget.MetricName = test.input.queryName
 		m := testTarget.metric()
@@ -49,7 +49,7 @@ func TestGroups(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		testTarget := Query{&Target{}}
+		testTarget := Query{&Target{}, false}
 		testTarget.Dimensions = test.input
 		m := testTarget.groups()
 		assert.Equal(t, test.expected, m)
@@ -58,21 +58,21 @@ func TestGroups(t *testing.T) {
 
 func TestAggregator(t *testing.T) {
 	for key, value := range statisticMap {
-		testTarget := Query{&Target{}}
+		testTarget := Query{&Target{}, false}
 		testTarget.Statistic = key
 		agg, err := testTarget.Aggregator()
 		assert.Equal(t, value, agg)
 		assert.Nil(t, err)
 	}
 	for key, value := range statisticMap {
-		testTarget := Query{&Target{}}
+		testTarget := Query{&Target{}, false}
 		testTarget.Statistics = []string{key}
 		agg, err := testTarget.Aggregator()
 		assert.Equal(t, value, agg)
 		assert.Nil(t, err)
 	}
 
-	testTarget := Query{&Target{}}
+	testTarget := Query{&Target{}, false}
 	agg, err := testTarget.Aggregator()
 	assert.Equal(t, datadogV1.FormulaAndFunctionMetricAggregation("avg"), agg)
 	assert.Nil(t, err)

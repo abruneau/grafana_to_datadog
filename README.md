@@ -95,12 +95,12 @@ grafana_to_datadog -i ./my_grafana_dashboard_directory -o ./output
 
 ## Compatibility
 
-| Graphana           | Datadog    | Cloudwatch | Stackdriver |
-| ------------------ | ---------- | ---------- | ----------- |
-| timeseries / graph | Timeseries | ✅          | ✅           |
-| text               | Note       | ✅          | ✅           |
-| row                | Group      | ✅          | ✅           |
-| stat               | QueryValue | ✅          | ✅           |
+| Graphana           | Datadog    | Cloudwatch | Stackdriver | Azure |
+| ------------------ | ---------- | ---------- | ----------- | ----- |
+| timeseries / graph | Timeseries | ✅          | ✅           | ✅     |
+| text               | Note       | ✅          | ✅           | ✅     |
+| row                | Group      | ✅          | ✅           | ✅     |
+| stat               | QueryValue | ✅          | ✅           | ✅     |
 
 
 <!-- ROADMAP -->
