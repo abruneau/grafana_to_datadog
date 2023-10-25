@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"grafana_to_datadog/dashboard/widgets/converter/azure"
 	"grafana_to_datadog/dashboard/widgets/converter/cloudwatch"
+	"grafana_to_datadog/dashboard/widgets/converter/prometheus"
 	"grafana_to_datadog/dashboard/widgets/converter/stackdriver"
 	"grafana_to_datadog/dashboard/widgets/shared"
 	"grafana_to_datadog/grafana"
@@ -17,6 +18,7 @@ var sourceMapper = map[string]NewQueryFunction{
 	"grafana-azure-monitor-datasource": azure.NewQuery,
 	"cloudwatch":                       cloudwatch.NewQuery,
 	"stackdriver":                      stackdriver.NewQuery,
+	"prometheus":                       prometheus.NewQuery,
 }
 
 type Converter struct {

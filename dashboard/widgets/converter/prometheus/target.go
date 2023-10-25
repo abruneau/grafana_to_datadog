@@ -7,4 +7,5 @@ type Target struct {
 	LegendFormat   string `json:"legendFormat"`
 	RefID          string `json:"refId"`
 	Step           int    `json:"step,omitempty"`
+	Hide           bool   `json:"hide"`
 }
