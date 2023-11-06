@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log"
 
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/promql/parser"
 )
 
@@ -40,18 +40,91 @@ func parseExp(expr parser.Expr) {
 	}
 }
 
-func main() {
+type Query struct {
+	Expr string
+	parsedExpr
+}
 
-	query := "sum(irate(container_cpu_usage_seconds_total{container=\"discovery\", pod=~\"istiod-.*|istio-pilot-.*\"}[1m]))"
+type parsedExpr struct {
+	agg       parser.ItemType
+	groups    []string
+	metric    string
+	filters   []*labels.Matcher
+	functions []metricFunction
+}
 
+type metricFunction struct {
+	name  string
+	value []any
+}
+
+func (q *Query) parseExprTypes(expr parser.Expr) {
+	agg, ok := expr.(*parser.AggregateExpr)
+	if ok {
+		q.agg = agg.Op
+		if agg.Grouping != nil {
+			q.groups = agg.Grouping
+		}
+		q.parseExprTypes(agg.Expr)
+	}
+
+	f, ok := expr.(*parser.Call)
+	if ok {
+		mf := metricFunction{name: f.Func.Name}
+
+		for _, arg := range f.Args {
+			if _, ok = arg.(*parser.NumberLiteral); ok {
+				mf.value = append(mf.value, arg.String())
+			} else {
+				q.parseExprTypes(arg)
+			}
+		}
+		q.functions = append(q.functions, mf)
+	}
+
+	matrix, ok := expr.(*parser.MatrixSelector)
+	if ok {
+		q.parseExprTypes(matrix.VectorSelector)
+	}
+
+	vec, ok := expr.(*parser.VectorSelector)
+	if ok {
+		q.metric = vec.Name
+		q.filters = vec.LabelMatchers
+	}
+}
+
+func (q *Query) parseExpr() error {
 	var expr parser.Expr
 	var err error
 
-	expr, err = parser.ParseExpr(query)
+	q.groups = []string{}
+
+	expr, err = parser.ParseExpr(q.Expr)
 	if err != nil {
-		log.Fatalf("parse error: %s", err)
+		return fmt.Errorf("query parsing error: %s %v", q.Expr, err)
 	}
 
-	parseExp(expr)
+	if expr.Type() != parser.ValueTypeVector {
+		return fmt.Errorf("expression type %s note supported", expr.Type())
+	}
+
+	q.parseExprTypes(expr)
+	return nil
+}
+
+func main() {
+
+	query := "sum(pilot_xds_eds_reject{app=\"istiod\"}) or (absent(pilot_xds_eds_reject{app=\"istiod\"}) - 1)"
+
+	q := Query{Expr: query}
+
+	q.parseExpr()
+
+	fmt.Println("metric: ", q.metric)
+	fmt.Println("agg: ", q.agg)
+	fmt.Println("groups: ", q.groups)
+	fmt.Println("filters: ", q.filters)
+	fmt.Println("functions: ", q.functions)
 
 }

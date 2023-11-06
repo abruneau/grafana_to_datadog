@@ -19,6 +19,18 @@ var agregationMap = map[parser.ItemType]datadogV1.FormulaAndFunctionMetricAggreg
 	parser.COUNT: "sum",
 }
 
+// var transfromationMap = map[string]dd.FormulaAndFunctionMetricTransformation{
+// 	"abs":       "abs",
+// 	"clamp_min": "clamp_min",
+// 	"clamp_max": "clamp_max",
+// 	"deriv":     "derivative",
+// 	"log2":      "log2",
+// 	"log10":     "log10",
+// 	"delta":     "dt",
+// 	"rate":      "per_second",
+// 	"irate":     "per_second",
+// }
+
 type Query struct {
 	*Target
 	groupBy bool
@@ -30,8 +42,13 @@ type parsedExpr struct {
 	groups    []string
 	metric    string
 	filters   []*labels.Matcher
-	functions []string
+	functions []metricFunction
 	err       error
+}
+
+type metricFunction struct {
+	name   string
+	values []string
 }
 
 func NewQuery(target map[string]interface{}, groupBy bool) shared.Query {
@@ -57,6 +74,9 @@ func (q *Query) Build() (string, error) {
 		return "", q.err
 	}
 
+	if q.metric == "" {
+		return "", fmt.Errorf("no metric found query=%s", q.Expr)
+	}
 	query.Metric = q.metric
 
 	query.Aggregator, err = q.Aggregator()
@@ -73,6 +93,11 @@ func (q *Query) Build() (string, error) {
 		return "", err
 	}
 
+	// query.Transformations, err = q.transfromations()
+	// if err != nil {
+	// 	return "", err
+	// }
+
 	return query.Build()
 }
 
@@ -88,10 +113,16 @@ func (q *Query) parseExprTypes(expr parser.Expr) {
 
 	f, ok := expr.(*parser.Call)
 	if ok {
-		q.functions = append(q.functions, f.Func.Name)
+		mf := metricFunction{name: f.Func.Name}
+
 		for _, arg := range f.Args {
-			q.parseExprTypes(arg)
+			if _, ok = arg.(*parser.NumberLiteral); ok {
+				mf.values = append(mf.values, arg.String())
+			} else {
+				q.parseExprTypes(arg)
+			}
 		}
+		q.functions = append(q.functions, mf)
 	}
 
 	matrix, ok := expr.(*parser.MatrixSelector)
@@ -126,12 +157,17 @@ func (q *Query) parseExpr() error {
 }
 
 func (q *Query) Aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, error) {
+	var defaultValue datadogV1.FormulaAndFunctionMetricAggregation = "avg"
+
 	if q.err != nil {
 		return "", q.err
 	}
+	if q.agg == 0 {
+		return defaultValue, nil
+	}
 	agg, ok := agregationMap[q.agg]
 	if !ok {
-		return "", shared.AggregationTypeError(q.agg.String())
+		return "", shared.AggregationTypeError(q.agg.String(), q.Expr)
 	}
 	return agg, nil
 }
@@ -160,10 +196,12 @@ func (q *Query) filter() ([]string, error) {
 
 		if len(values) > 1 {
 			switch f.Type {
-			case labels.MatchEqual, labels.MatchRegexp:
+			case labels.MatchEqual:
 				filters = append(filters, fmt.Sprintf("%s IN (%s)", f.Name, strings.Join(values, ", ")))
-			case labels.MatchNotEqual, labels.MatchNotRegexp:
+			case labels.MatchNotEqual:
 				filters = append(filters, fmt.Sprintf("%s NOT IN (%s)", f.Name, strings.Join(values, ", ")))
+			case labels.MatchRegexp, labels.MatchNotRegexp:
+				return filters, fmt.Errorf("regex not supported with syntax operators \"IN\" and \"NOT IN\" query=%s", q.Expr)
 			}
 		} else {
 			switch f.Type {
@@ -178,3 +216,17 @@ func (q *Query) filter() ([]string, error) {
 
 	return filters, nil
 }
+
+// func (q *Query) transfromations() ([]dd.MetricFunction, error) {
+// 	var transfo []dd.MetricFunction
+// 	for _, f := range q.functions {
+// 		var ok bool
+// 		mf := dd.MetricFunction{Values: f.values}
+// 		mf.Name, ok = transfromationMap[f.name]
+// 		if !ok {
+// 			return transfo, shared.TransformationTypeError(f.name, q.Expr)
+// 		}
+// 		transfo = append(transfo, mf)
+// 	}
+// 	return transfo, nil
+// }

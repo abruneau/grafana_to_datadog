@@ -1,6 +1,7 @@
 package prometheus
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/prometheus/prometheus/model/labels"
@@ -9,9 +10,10 @@ import (
 )
 
 var tests = []struct {
-	input   string
-	output  parsedExpr
-	filters []string
+	input         string
+	output        parsedExpr
+	filters       []string
+	filters_error error
 }{
 	{
 		input: "sum(istio_build{component=\"pilot\"}) by (tag)",
@@ -39,18 +41,20 @@ var tests = []struct {
 			metric:  "container_memory_working_set_bytes",
 			filters: []*labels.Matcher{labels.MustNewMatcher(labels.MatchEqual, "__name__", "container_memory_working_set_bytes"), labels.MustNewMatcher(labels.MatchRegexp, "container", "istio-proxy"), labels.MustNewMatcher(labels.MatchRegexp, "pod", "istiod-.*|istio-pilot-.*")},
 		},
-		filters: []string{"container:istio-proxy", "pod IN (istiod-*, istio-pilot-*)"},
+		filters:       []string{"container:istio-proxy", "pod IN (istiod-*, istio-pilot-*)"},
+		filters_error: fmt.Errorf("regex not supported with syntax operators \"IN\" and \"NOT IN\" query=%s", "container_memory_working_set_bytes{container=~\"istio-proxy\", pod=~\"istiod-.*|istio-pilot-.*\"}"),
 	},
 	{
 		input: "sum(irate(container_cpu_usage_seconds_total{container=\"discovery\", pod=~\"istiod-.*|istio-pilot-.*\"}[1m]))",
 		output: parsedExpr{
 			agg:       parser.SUM,
 			groups:    []string{},
-			functions: []string{"irate"},
+			functions: []metricFunction{{name: "irate"}},
 			metric:    "container_cpu_usage_seconds_total",
 			filters:   []*labels.Matcher{labels.MustNewMatcher(labels.MatchEqual, "__name__", "container_cpu_usage_seconds_total"), labels.MustNewMatcher(labels.MatchRegexp, "container", "discovery"), labels.MustNewMatcher(labels.MatchRegexp, "pod", "istiod-.*|istio-pilot-.*")},
 		},
-		filters: []string{"container:discovery", "pod IN (istiod-*, istio-pilot-*)"},
+		filters:       []string{"container:discovery", "pod IN (istiod-*, istio-pilot-*)"},
+		filters_error: fmt.Errorf("regex not supported with syntax operators \"IN\" and \"NOT IN\" query=%s", "sum(irate(container_cpu_usage_seconds_total{container=\"discovery\", pod=~\"istiod-.*|istio-pilot-.*\"}[1m]))"),
 	},
 }
 
@@ -75,7 +79,12 @@ func TestFilter(t *testing.T) {
 		testTarget.err = testTarget.parseExpr()
 		assert.NoError(t, testTarget.err)
 		filters, err := testTarget.filter()
-		assert.NoError(t, err)
-		assert.Equal(t, test.filters, filters)
+		if test.filters_error != nil {
+			assert.EqualError(t, err, test.filters_error.Error())
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, test.filters, filters)
+		}
+
 	}
 }
