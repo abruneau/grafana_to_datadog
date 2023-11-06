@@ -2,8 +2,10 @@ package prometheus
 
 import (
 	"fmt"
+	"grafana_to_datadog/dashboard/widgets/shared"
 	"testing"
 
+	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/promql/parser"
 	"github.com/stretchr/testify/assert"
@@ -87,4 +89,31 @@ func TestFilter(t *testing.T) {
 		}
 
 	}
+}
+
+func TestAggregator(t *testing.T) {
+
+	// Test all values
+	for key, value := range agregationMap {
+		testTarget := Query{&Target{}, false, parsedExpr{}}
+		testTarget.agg = key
+		agg, err := testTarget.Aggregator()
+		assert.Equal(t, value, agg)
+		assert.Nil(t, err)
+	}
+
+}
+
+func TestAggregatorDefault(t *testing.T) {
+	testTarget := Query{&Target{}, false, parsedExpr{}}
+	agg, err := testTarget.Aggregator()
+	assert.Equal(t, datadogV1.FormulaAndFunctionMetricAggregation("avg"), agg)
+	assert.Nil(t, err)
+}
+
+func TestAggregatorError(t *testing.T) {
+	testTarget := Query{&Target{}, false, parsedExpr{}}
+	testTarget.agg = parser.BOTTOMK
+	_, err := testTarget.Aggregator()
+	assert.EqualError(t, err, shared.AggregationTypeError("bottomk").Error())
 }
