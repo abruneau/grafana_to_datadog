@@ -52,7 +52,17 @@ func (q *Query) Build() (string, error) {
 
 	from = "*"
 	if len(q.Filters) > 0 {
-		from = strings.Join(q.Filters, ",")
+		for i, v := range q.Filters {
+			if i == 0 {
+				from = v
+			} else {
+				if strings.Contains(v, " IN ") {
+					from = fmt.Sprintf("%s AND %s", from, v)
+				} else {
+					from = fmt.Sprintf("%s, %s", from, v)
+				}
+			}
+		}
 	}
 
 	by = ""
