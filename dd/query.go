@@ -30,7 +30,7 @@ func (q *Query) Build() (string, error) {
 				if strings.Contains(v, " IN ") {
 					from = fmt.Sprintf("%s AND %s", from, v)
 				} else {
-					from = fmt.Sprintf("%s, %s", from, v)
+					from = fmt.Sprintf("%s,%s", from, v)
 				}
 			}
 		}
