@@ -55,7 +55,7 @@ brews:
     # done with scoop.
 
     # GitHub/GitLab repository to push the formula to
-    tap:
+    repository:
       # Repository owner.
       #
       # Templates: allowed
