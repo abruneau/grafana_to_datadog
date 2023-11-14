@@ -194,6 +194,13 @@ func (q *Query) filter() ([]string, error) {
 		value := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(f.Value, "..", "*"), ".*", "*"), "//", "/")
 		values := strings.Split(value, "|")
 
+		for i, v := range values {
+			if strings.HasPrefix(v, "$") {
+				values[i] = fmt.Sprintf("%s.value", v)
+				fmt.Println(values[i])
+			}
+		}
+
 		if len(values) > 1 {
 			switch f.Type {
 			case labels.MatchEqual:
@@ -206,9 +213,9 @@ func (q *Query) filter() ([]string, error) {
 		} else {
 			switch f.Type {
 			case labels.MatchEqual, labels.MatchRegexp:
-				filters = append(filters, fmt.Sprintf("%s:%s", f.Name, value))
+				filters = append(filters, fmt.Sprintf("%s:%s", f.Name, values[0]))
 			case labels.MatchNotEqual, labels.MatchNotRegexp:
-				filters = append(filters, fmt.Sprintf("!%s:%s", f.Name, value))
+				filters = append(filters, fmt.Sprintf("!%s:%s", f.Name, values[0]))
 			}
 		}
 
