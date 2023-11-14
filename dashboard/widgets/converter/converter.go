@@ -19,6 +19,7 @@ var sourceMapper = map[string]NewQueryFunction{
 	"cloudwatch":                       cloudwatch.NewQuery,
 	"stackdriver":                      stackdriver.NewQuery,
 	"prometheus":                       prometheus.NewQuery,
+	"loki":                             prometheus.NewQuery,
 }
 
 type Converter struct {
