@@ -183,6 +183,19 @@ func (q *Query) function() dd.FormulaAndFunctionMetricFunction {
 	return "as_count()"
 }
 
+func cleanupFilterValues(value string) []string {
+	value = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(value, "..", "*"), ".*", "*"), "//", "/")
+	values := strings.Split(value, "|")
+
+	for i, v := range values {
+		if strings.HasPrefix(v, "$") {
+			values[i] = fmt.Sprintf("%s.value", v)
+			fmt.Println(values[i])
+		}
+	}
+	return values
+}
+
 func (q *Query) filter() ([]string, error) {
 	filters := []string{}
 
@@ -191,15 +204,7 @@ func (q *Query) filter() ([]string, error) {
 			continue
 		}
 
-		value := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(f.Value, "..", "*"), ".*", "*"), "//", "/")
-		values := strings.Split(value, "|")
-
-		for i, v := range values {
-			if strings.HasPrefix(v, "$") {
-				values[i] = fmt.Sprintf("%s.value", v)
-				fmt.Println(values[i])
-			}
-		}
+		values := cleanupFilterValues(f.Value)
 
 		if len(values) > 1 {
 			switch f.Type {

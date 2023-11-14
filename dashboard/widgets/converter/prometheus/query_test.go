@@ -91,6 +91,26 @@ func TestFilter(t *testing.T) {
 	}
 }
 
+func TestCleanupFilterValues(t *testing.T) {
+	var examples = []struct {
+		value  string
+		values []string
+	}{
+		{
+			value:  "istiod-.*|istio-pilot-.*",
+			values: []string{"istiod-*", "istio-pilot-*"},
+		},
+		{
+			value:  "$cluster",
+			values: []string{"$cluster.value"},
+		},
+	}
+
+	for _, e := range examples {
+		assert.Equal(t, e.values, cleanupFilterValues(e.value))
+	}
+}
+
 func TestAggregator(t *testing.T) {
 
 	// Test all values
