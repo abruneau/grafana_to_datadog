@@ -12,7 +12,7 @@ import (
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
 )
 
-type NewQueryFunction func(target map[string]interface{}, groupBy bool) shared.Query
+type NewQueryFunction func(target map[string]interface{}, groupBy bool) (shared.Request, error)
 
 var sourceMapper = map[string]NewQueryFunction{
 	"grafana-azure-monitor-datasource": azure.NewQuery,
@@ -43,21 +43,23 @@ func (c *Converter) parseTargets(panel grafana.Panel, aggregate bool, groupBy bo
 	formulas = []datadogV1.WidgetFormula{}
 
 	for _, t := range panel.Targets {
-		query := c.newQuery(t, groupBy)
+		r, err := c.newQuery(t, groupBy)
 
-		id := query.Id()
-		targetQuery, err := query.Build()
 		if err != nil {
 			return queries, formulas, err
 		}
 
-		q := datadogV1.NewFormulaAndFunctionMetricQueryDefinition("metrics", id, targetQuery)
-		if aggregate {
-			agg, _ := query.Aggregator()
-			q.SetAggregator(agg)
+		for _, f := range r.Queries {
+			q := datadogV1.NewFormulaAndFunctionMetricQueryDefinition("metrics", f.Name, f.Query)
+			queries = append(queries, datadogV1.FormulaAndFunctionMetricQueryDefinitionAsFormulaAndFunctionQueryDefinition(q))
+			if aggregate {
+				q.SetAggregator(f.Aggregation)
+			}
 		}
-		queries = append(queries, datadogV1.FormulaAndFunctionMetricQueryDefinitionAsFormulaAndFunctionQueryDefinition(q))
-		formulas = append(formulas, *datadogV1.NewWidgetFormula(query.Formula()))
+
+		for _, f := range r.Formulas {
+			formulas = append(formulas, *datadogV1.NewWidgetFormula(f))
+		}
 	}
 
 	if len(formulas) == 0 {
