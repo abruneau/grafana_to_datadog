@@ -141,8 +141,13 @@ func (q *Query) parseExprTypes(expr parser.Expr) (s Structure, err error) {
 		q.filters = vec.LabelMatchers
 		s.Metric = vec.Name
 		s.Filters = vec.LabelMatchers
+		// TODO: Offset isn't used
 
 		s.Parsed, err = q.Build()
+		if err != nil {
+			return s, err
+		}
+		s.Agg, err = q.Aggregator()
 		if err != nil {
 			return s, err
 		}

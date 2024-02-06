@@ -1,6 +1,6 @@
 module grafana_to_datadog
 
-go 1.19
+go 1.21.1
 
 require (
 	github.com/DataDog/datadog-api-client-go/v2 v2.10.0

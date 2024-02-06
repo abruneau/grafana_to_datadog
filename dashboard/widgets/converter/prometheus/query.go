@@ -34,7 +34,6 @@ type parsedExpr struct {
 	groups  []string
 	metric  string
 	filters []*labels.Matcher
-	err     error
 }
 
 func NewQuery(target map[string]interface{}, groupBy bool) (shared.Request, error) {
@@ -53,10 +52,6 @@ func NewQuery(target map[string]interface{}, groupBy bool) (shared.Request, erro
 func (q *Query) Build() (string, error) {
 	var err error
 	query := dd.Query{}
-
-	if q.err != nil {
-		return "", q.err
-	}
 
 	if q.metric == "" {
 		return "", fmt.Errorf("no metric found query=%s", q.Expr)
@@ -83,9 +78,6 @@ func (q *Query) Build() (string, error) {
 func (q *Query) Aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, error) {
 	var defaultValue datadogV1.FormulaAndFunctionMetricAggregation = "avg"
 
-	if q.err != nil {
-		return "", q.err
-	}
 	if q.agg == 0 {
 		return defaultValue, nil
 	}
