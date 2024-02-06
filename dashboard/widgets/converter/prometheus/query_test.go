@@ -17,7 +17,7 @@ var tests = []struct {
 		expr:  "sum(rate(loki_distributor_bytes_received_total{cluster=\"$cluster\", namespace=\"$namespace\"}[5m])) by (tenant) / 1024 / 1024",
 		refId: "A",
 		request: shared.Request{
-			Formulas: []string{"A20/1024/1024"},
+			Formulas: []string{"A20 / 1024 / 1024"},
 			Queries: []struct {
 				Name        string
 				Query       string
@@ -32,17 +32,22 @@ var tests = []struct {
 		},
 	},
 	{
-		expr:  "clamp_min(foo, 0)",
+		expr:  "clamp_min(foo - foo offset 60s, 0)",
 		refId: "A",
 		request: shared.Request{
-			Formulas: []string{"clamp_min(A10, 0)"},
+			Formulas: []string{"clamp_min(A20 - hour_before(A30), 0)"},
 			Queries: []struct {
 				Name        string
 				Query       string
 				Aggregation datadogV1.FormulaAndFunctionMetricAggregation
 			}{
 				{
-					Name:        "A10",
+					Name:        "A20",
+					Query:       "avg:foo{*}.as_count()",
+					Aggregation: datadogV1.FORMULAANDFUNCTIONMETRICAGGREGATION_AVG,
+				},
+				{
+					Name:        "A30",
 					Query:       "avg:foo{*}.as_count()",
 					Aggregation: datadogV1.FORMULAANDFUNCTIONMETRICAGGREGATION_AVG,
 				},

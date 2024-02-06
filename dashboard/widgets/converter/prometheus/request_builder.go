@@ -15,7 +15,7 @@ func (s *Structure) transvers(refId string, level int) (f string, q []struct {
 	if s.Agg != "" && len(s.Args) == 2 {
 		f1, q1, _ := s.Args[0].transvers(refId, level+10)
 		f2, q2, _ := s.Args[1].transvers(refId, level+20)
-		f = fmt.Sprintf("%s%s%s", f1, s.Agg, f2)
+		f = fmt.Sprintf("%s %s %s", f1, s.Agg, f2)
 		q = append(q, q1...)
 		q = append(q, q2...)
 		return
@@ -25,7 +25,7 @@ func (s *Structure) transvers(refId string, level int) (f string, q []struct {
 		f = s.Number
 	}
 
-	if s.Function != "" {
+	if s.Function != "" && len(s.Args) > 0 {
 		var formulas []string
 		for i, a := range s.Args {
 			fchild, qchild, _ := a.transvers(refId, level+10*(i+1))
@@ -36,16 +36,20 @@ func (s *Structure) transvers(refId string, level int) (f string, q []struct {
 	}
 
 	if s.Parsed != "" {
-		if level == 0 {
-			f = refId
+		var id = refId
+		if level > 0 {
+			id = fmt.Sprintf("%s%v", refId, level)
+		}
+		if s.Function != "" {
+			f = fmt.Sprintf("%s(%s)", s.Function, id)
 		} else {
-			f = fmt.Sprintf("%s%v", refId, level)
+			f = id
 		}
 		q = append(q, struct {
 			Name        string
 			Query       string
 			Aggregation datadogV1.FormulaAndFunctionMetricAggregation
-		}{f, s.Parsed, s.Agg})
+		}{id, s.Parsed, s.Agg})
 	}
 	return
 }

@@ -5,6 +5,7 @@ import (
 	"grafana_to_datadog/dashboard/widgets/shared"
 	"grafana_to_datadog/dd"
 	"log"
+	"time"
 
 	"github.com/DataDog/datadog-api-client-go/v2/api/datadogV1"
 	"github.com/prometheus/prometheus/model/labels"
@@ -85,6 +86,38 @@ func parseAggregateExpr(expr parser.AggregateExpr) (agg datadogV1.FormulaAndFunc
 	return q.Aggregator, query, err
 }
 
+func (q *Query) parseVectorExpr(expr parser.VectorSelector) (s Structure, err error) {
+	q.metric = expr.Name
+	q.filters = expr.LabelMatchers
+	s.Metric = expr.Name
+	s.Filters = expr.LabelMatchers
+
+	s.Parsed, err = q.Build()
+	if err != nil {
+		return s, err
+	}
+	s.Agg, err = q.Aggregator()
+	if err != nil {
+		return s, err
+	}
+
+	offset := expr.Offset + expr.OriginalOffset
+
+	if offset > 0 {
+		if offset <= 60*time.Minute {
+			s.Function = dd.FORMULAANDFUNCTIONMETRICTRANSFORMATION_HOUR_BEFORE
+		} else if offset <= 24*time.Hour {
+			s.Function = dd.FORMULAANDFUNCTIONMETRICTRANSFORMATION_DAY_BEFORE
+		} else if offset <= 7*24*time.Hour {
+			s.Function = dd.FORMULAANDFUNCTIONMETRICTRANSFORMATION_WEEK_BEFORE
+		} else {
+			s.Function = dd.FORMULAANDFUNCTIONMETRICTRANSFORMATION_MONTH_BEFORE
+		}
+	}
+
+	return
+}
+
 func (q *Query) parseExprTypes(expr parser.Expr) (s Structure, err error) {
 	num, ok := expr.(*parser.NumberLiteral)
 	if ok {
@@ -136,23 +169,7 @@ func (q *Query) parseExprTypes(expr parser.Expr) (s Structure, err error) {
 
 	vec, ok := expr.(*parser.VectorSelector)
 	if ok {
-
-		q.metric = vec.Name
-		q.filters = vec.LabelMatchers
-		s.Metric = vec.Name
-		s.Filters = vec.LabelMatchers
-		// TODO: Offset isn't used
-
-		s.Parsed, err = q.Build()
-		if err != nil {
-			return s, err
-		}
-		s.Agg, err = q.Aggregator()
-		if err != nil {
-			return s, err
-		}
-
-		return s, nil
+		return q.parseVectorExpr(*vec)
 	}
 
 	bin, ok := expr.(*parser.BinaryExpr)
