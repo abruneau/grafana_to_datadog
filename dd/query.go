@@ -8,17 +8,22 @@ import (
 )
 
 type Query struct {
-	Metric     string
-	Filters    []string
-	Aggregator datadogV1.FormulaAndFunctionMetricAggregation
-	GroupBys   []string
-	Function   FormulaAndFunctionMetricFunction
+	Metric      string
+	Filters     []string
+	Aggregator  datadogV1.FormulaAndFunctionMetricAggregation
+	GroupBys    []string
+	Function    FormulaAndFunctionMetricFunction
+	Aggregation string
 }
 
 func (q *Query) Build() (string, error) {
 	var query, from, by string
 	if !q.Aggregator.IsValid() {
 		return "", fmt.Errorf("unknown agrregator %s", q.Aggregator)
+	}
+
+	if q.Aggregation == "" {
+		q.Aggregation = string(q.Aggregator)
 	}
 
 	from = "*"
@@ -41,7 +46,7 @@ func (q *Query) Build() (string, error) {
 		by = fmt.Sprintf(" by {%s}", strings.Join(q.GroupBys, ","))
 	}
 
-	query = fmt.Sprintf("%s:%s{%s}%s", q.Aggregator, q.Metric, from, by)
+	query = fmt.Sprintf("%s:%s{%s}%s", q.Aggregation, q.Metric, from, by)
 
 	if q.Function != "" {
 		if !q.Function.IsValid() {

@@ -16,18 +16,36 @@ var statisticMap = map[string]datadogV1.FormulaAndFunctionMetricAggregation{
 	"Maximum": "max",
 }
 
-func NewQuery(target map[string]interface{}, groupBy bool) shared.Query {
+type Query struct {
+	*Target
+	groupBy bool
+}
+
+func NewQuery(target map[string]interface{}, groupBy bool) (shared.Request, error) {
 	t := shared.NewTarget[Target](target)
 	query := &Query{
 		Target:  t,
 		groupBy: groupBy,
 	}
-	return query
+	return query.parse()
 }
 
-type Query struct {
-	*Target
-	groupBy bool
+func (q *Query) parse() (r shared.Request, err error) {
+	query, err := q.Build()
+	if err != nil {
+		return r, err
+	}
+	agg, err := q.Aggregator()
+	if err != nil {
+		return r, err
+	}
+	r.Queries = append(r.Queries, struct {
+		Name        string
+		Query       string
+		Aggregation datadogV1.FormulaAndFunctionMetricAggregation
+	}{q.Id(), query, agg})
+	r.Formulas = append(r.Formulas, q.Formula())
+	return r, nil
 }
 
 func (q *Query) Id() string {

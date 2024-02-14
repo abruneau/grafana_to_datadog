@@ -5,15 +5,17 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type Query interface {
-	Id() string
-	Build() (string, error)
-	Aggregator() (datadogV1.FormulaAndFunctionMetricAggregation, error)
-	Formula() string
-}
-
 func NewTarget[T interface{}](target map[string]interface{}) *T {
 	var output T
 	mapstructure.Decode(target, &output)
 	return &output
+}
+
+type Request struct {
+	Formulas []string
+	Queries  []struct {
+		Name        string
+		Query       string
+		Aggregation datadogV1.FormulaAndFunctionMetricAggregation
+	}
 }
