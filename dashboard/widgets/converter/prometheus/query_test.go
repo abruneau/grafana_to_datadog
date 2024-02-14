@@ -14,7 +14,7 @@ var tests = []struct {
 	request shared.Request
 }{
 	{
-		expr:  "sum(rate(loki_distributor_bytes_received_total{cluster=\"$cluster\", namespace=\"$namespace\"}[5m])) by (tenant) / 1024 / 1024",
+		expr:  "sum(rate(foo{cluster=\"$cluster\", namespace=\"$namespace\"}[5m])) by (tenant) / 1024 / 1024",
 		refId: "A",
 		request: shared.Request{
 			Formulas: []string{"A20 / 1024 / 1024"},
@@ -25,7 +25,7 @@ var tests = []struct {
 			}{
 				{
 					Name:        "A20",
-					Query:       "sum:loki_distributor_bytes_received_total{cluster:$cluster.value,namespace:$namespace.value} by {tenant}.as_rate()",
+					Query:       "sum:foo{cluster:$cluster.value,namespace:$namespace.value} by {tenant}.as_rate()",
 					Aggregation: datadogV1.FORMULAANDFUNCTIONMETRICAGGREGATION_SUM,
 				},
 			},
@@ -50,6 +50,24 @@ var tests = []struct {
 					Name:        "A30",
 					Query:       "avg:foo{*}.as_count()",
 					Aggregation: datadogV1.FORMULAANDFUNCTIONMETRICAGGREGATION_AVG,
+				},
+			},
+		},
+	},
+	{
+		expr:  "histogram_quantile(.99, sum(rate(foo{cluster=\"$cluster\", namespace=\"$namespace\"}[5m])) by (operation, le))",
+		refId: "A",
+		request: shared.Request{
+			Formulas: []string{"A"},
+			Queries: []struct {
+				Name        string
+				Query       string
+				Aggregation datadogV1.FormulaAndFunctionMetricAggregation
+			}{
+				{
+					Name:        "A",
+					Query:       "p99:foo{cluster:$cluster.value,namespace:$namespace.value} by {operation,le}.as_rate()",
+					Aggregation: datadogV1.FORMULAANDFUNCTIONMETRICAGGREGATION_PERCENTILE,
 				},
 			},
 		},

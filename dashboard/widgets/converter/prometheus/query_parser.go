@@ -24,15 +24,16 @@ type Structure struct {
 }
 
 var transfromationMap = map[string]dd.FormulaAndFunctionMetricTransformation{
-	"abs":       "abs",
-	"clamp_min": "clamp_min",
-	"clamp_max": "clamp_max",
-	"deriv":     "derivative",
-	"log2":      "log2",
-	"log10":     "log10",
-	"delta":     "dt",
-	"rate":      "per_second",
-	"irate":     "per_second",
+	"abs":                "abs",
+	"clamp_min":          "clamp_min",
+	"clamp_max":          "clamp_max",
+	"deriv":              "derivative",
+	"log2":               "log2",
+	"log10":              "log10",
+	"delta":              "dt",
+	"rate":               "per_second",
+	"irate":              "per_second",
+	"histogram_quantile": "histogram_quantile",
 }
 
 func extractAggregateFunction(expr parser.Expr) (dd.FormulaAndFunctionMetricFunction, parser.Expr, error) {
@@ -63,13 +64,18 @@ func parseMetric(expr parser.Expr) (name string, filters []string, err error) {
 	return name, filters, fmt.Errorf("invalid expr type %s", expr.Type())
 }
 
-func parseAggregateExpr(expr parser.AggregateExpr) (agg datadogV1.FormulaAndFunctionMetricAggregation, query string, err error) {
+func parseAggregateExpr(expr parser.AggregateExpr, quantil float64) (agg datadogV1.FormulaAndFunctionMetricAggregation, query string, err error) {
 	q := dd.Query{}
 	var ok bool
 	q.Aggregator, ok = aggregationMap[expr.Op]
 	if !ok {
 		return "", "", shared.AggregationTypeError(expr.Op.String(), expr.String())
 	}
+
+	if expr.Op == parser.QUANTILE {
+		q.Aggregation = fmt.Sprintf("p%v", quantil*100)
+	}
+
 	q.GroupBys = expr.Grouping
 
 	var metricExpr parser.Expr
@@ -118,6 +124,14 @@ func (q *Query) parseVectorExpr(expr parser.VectorSelector) (s Structure, err er
 	return
 }
 
+func handleQuantil(f *parser.Call) (s Structure, err error) {
+	quantil := f.Args[0].(*parser.NumberLiteral).Val
+	agg := f.Args[1].(*parser.AggregateExpr)
+	agg.Op = parser.QUANTILE
+	s.Agg, s.Parsed, err = parseAggregateExpr(*agg, quantil)
+	return
+}
+
 func (q *Query) parseExprTypes(expr parser.Expr) (s Structure, err error) {
 	num, ok := expr.(*parser.NumberLiteral)
 	if ok {
@@ -127,7 +141,7 @@ func (q *Query) parseExprTypes(expr parser.Expr) (s Structure, err error) {
 
 	agg, ok := expr.(*parser.AggregateExpr)
 	if ok {
-		s.Agg, s.Parsed, err = parseAggregateExpr(*agg)
+		s.Agg, s.Parsed, err = parseAggregateExpr(*agg, 0)
 		if err != nil {
 			return s, err
 		}
@@ -142,16 +156,21 @@ func (q *Query) parseExprTypes(expr parser.Expr) (s Structure, err error) {
 			return s, fmt.Errorf("unsupported transformation function %s", f.Func.Name)
 		}
 
-		for _, arg := range f.Args {
-			if _, ok = arg.(*parser.NumberLiteral); ok {
-				s.Args = append(s.Args, Structure{Number: arg.String()})
-			} else {
-				parsed, err := q.parseExprTypes(arg)
-				if err != nil {
-					return s, err
+		if s.Function == "histogram_quantile" {
+			return handleQuantil(f)
+		} else {
+
+			for _, arg := range f.Args {
+				if _, ok = arg.(*parser.NumberLiteral); ok {
+					s.Args = append(s.Args, Structure{Number: arg.String()})
+				} else {
+					parsed, err := q.parseExprTypes(arg)
+					if err != nil {
+						return s, err
+					}
+					s.Args = append(s.Args, parsed)
+					q.parseExprTypes(arg)
 				}
-				s.Args = append(s.Args, parsed)
-				q.parseExprTypes(arg)
 			}
 		}
 		return s, nil

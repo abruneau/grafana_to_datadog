@@ -12,15 +12,16 @@ import (
 )
 
 var aggregationMap = map[parser.ItemType]datadogV1.FormulaAndFunctionMetricAggregation{
-	parser.AVG:   "avg",
-	parser.SUM:   "sum",
-	parser.MAX:   "max",
-	parser.MIN:   "min",
-	parser.COUNT: "sum",
-	parser.SUB:   "-",
-	parser.ADD:   "+",
-	parser.MUL:   "*",
-	parser.DIV:   "/",
+	parser.AVG:      "avg",
+	parser.SUM:      "sum",
+	parser.MAX:      "max",
+	parser.MIN:      "min",
+	parser.COUNT:    "sum",
+	parser.SUB:      "-",
+	parser.ADD:      "+",
+	parser.MUL:      "*",
+	parser.DIV:      "/",
+	parser.QUANTILE: "percentile",
 }
 
 type Query struct {
