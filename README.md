@@ -7,7 +7,7 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
-
+This project is archived and has been merged in [abruneau/datadog_import](https://github.com/abruneau/datadog_import)
 
 <!-- PROJECT LOGO -->
 <br />
